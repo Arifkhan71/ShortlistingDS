@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Shortlisting Via DataScience</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .card {
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: #6740f5;
+            color: white;
+            border-radius: 10px 10px 0 0;
+            padding: 10px 20px;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .alert ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .alert ul li {
+            margin-bottom: 10px;
+        }
+        .qualifying-score,
+        .total-resumes {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header text-center">
+                <h2>CANDIDATES SHORTLISTING Via DATASCIENCE</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="/match" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="job_description_file">Upload Job Description:</label>
+                        <input type="file" class="form-control" id="job_description_file" name="job_description_file" required accept=".pdf, .docx, .txt">
+                    </div>
+                    <div class="form-group">
+                        <label for="resumes">Upload Resumes:</label>
+                        <input type="file" class="form-control" id="resumes" name="resumes" multiple required accept=".pdf, .docx, .txt">
+                    </div>
+                    <div class="form-group">
+                        <label for="qualifying_score">Qualifying Score (%):</label>
+                        <input type="number" class="form-control" id="qualifying_score" name="qualifying_score" placeholder="Enter qualifying score (e.g., 55)" required min="0" max="100" step="0.01">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Execute Resume & JD Comparision</button>
+                </form>
+
+                {% if message %}
+                    <div class="alert alert-info mt-4">
+                        <p><strong>{{ message }}</strong></p>
+                        <div class="qualifying-score">
+                            <strong>Qualifying Score:</strong> {{ qualifying_score }}%
+                        </div>
+                        <div class="total-resumes">
+                            <strong>Total Resumes Processed:</strong> {{ total_resumes }}
+                        </div>
+                        {% if shortlisted_resumes %}
+                            <h5 class="mt-4">Shortlisted Resumes:</h5>
+                            <ul>
+                                {% for resume, score in shortlisted_resumes %}
+                                    <li><strong>{{ resume }}</strong> (Similarity Score: {{ score }}%)</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                        {% if unmatched_resumes %}
+                        <h5 class="mt-4">Unmatched Resumes:</h5>
+                        <ul>
+                            {% for resume, score, reason in unmatched_resumes %}
+                                <li>
+                                    <strong>
+                                        <a href="javascript:void(0)" class="popup-trigger" data-reason="{{ reason }}">{{ resume }}</a>
+                                    </strong> 
+                                    (Score: 
+                                    <a href="javascript:void(0)" class="popup-trigger" data-reason="{{ reason }}">{{ score }}%</a>
+                                    )
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div id="popup" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; border:1px solid #ccc; padding:20px; box-shadow:0px 0px 10px rgba(0,0,0,0.1);">
+        <p id="popup-content"></p>
+        <button onclick="closePopup()">Close</button>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Function to show the popup
+        function showPopup(reason) {
+            const popup = document.getElementById('popup');
+            const content = document.getElementById('popup-content');
+            content.textContent = reason;
+            popup.style.display = 'block';
+        }
+
+        // Function to close the popup
+        function closePopup() {
+            const popup = document.getElementById('popup');
+            popup.style.display = 'none';
+        }
+
+        // Attach event listeners to trigger elements
+        document.querySelectorAll('.popup-trigger').forEach(function(element) {
+            element.addEventListener('click', function() {
+                const reason = this.getAttribute('data-reason');
+                showPopup(reason);
+            });
+        });
+    </script>
+</body>
+</html>
